@@ -1,0 +1,44 @@
+name: Test Suite
+
+on:
+  push:
+    branches: ["master"]
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+
+    steps:
+      - uses: "actions/checkout@v3"
+      - uses: "actions/setup-python@v4"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: Install and configure Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.2.0b3
+          virtualenvs-create: true
+
+      - name: "Backend - install dependencies"
+        run: "cd services/backend && scripts/install"
+      - name: "Backend - run tests"
+        run: "cd services/backend && scripts/test"
+        env:
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_API_DEFAULT_AUDIENCE: ${{ secrets.AUTH0_API_DEFAULT_AUDIENCE }}
+          AUTH0_APPLICATION_CLIENT_ID: ${{ secrets.AUTH0_APPLICATION_CLIENT_ID }}
+          AUTH0_APPLICATION_CLIENT_SECRET: ${{ secrets.AUTH0_APPLICATION_CLIENT_SECRET }}
+          AUTH0_TEST_USERNAME: ${{ secrets.AUTH0_TEST_USERNAME }}
+          AUTH0_TEST_PASSWORD: ${{ secrets.AUTH0_TEST_PASSWORD }}
+          AUTH0_MANAGEMENT_API_CLIENT_ID: ${{ secrets.AUTH0_MANAGEMENT_API_CLIENT_ID }}
+          AUTH0_MANAGEMENT_API_CLIENT_SECRET: ${{ secrets.AUTH0_MANAGEMENT_API_CLIENT_SECRET }}
+          AUTH0_MANAGEMENT_API_AUDIENCE: ${{ secrets.AUTH0_MANAGEMENT_API_AUDIENCE }}
